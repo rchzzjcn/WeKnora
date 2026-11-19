@@ -410,6 +410,18 @@ func openLogFile(logPath string) (io.WriteCloser, error) {
 	}, nil
 }
 
+// repoRoot 是仓库根目录（由本文件位置推出，包初始化时计算一次），
+// 用于把 runtime.Caller 返回的绝对路径裁成仓库内相对路径——
+// message.go 这类常见文件名在多个包里同名，只打文件名无法定位。
+var repoRoot = func() string {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return ""
+	}
+	// file = <repo>/internal/logger/logger.go，向上三级即仓库根
+	return filepath.Dir(filepath.Dir(filepath.Dir(file)))
+}()
+
 // 添加调用者字段
 func addCaller(entry *logrus.Entry, skip int) *logrus.Entry {
 	pc, file, line, ok := runtime.Caller(skip)
@@ -417,6 +429,13 @@ func addCaller(entry *logrus.Entry, skip int) *logrus.Entry {
 		return entry
 	}
 	shortFile := path.Base(file)
+	if repoRoot != "" {
+		// 仓库内文件打相对路径（internal/application/service/message.go）；
+		// 仓库外（依赖库）TrimPrefix 不命中，回落到仅文件名，避免打出模块缓存的长路径
+		if rel := strings.TrimPrefix(file, repoRoot+string(filepath.Separator)); rel != file {
+			shortFile = rel
+		}
+	}
 	funcName := "unknown"
 	if fn := runtime.FuncForPC(pc); fn != nil {
 		// 只保留函数名，不带包路径（如 doSomething）
