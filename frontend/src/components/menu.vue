@@ -3,7 +3,8 @@
         <!-- 展开时：Logo + 搜索/折叠按钮同行 -->
         <div class="logo_row" v-if="!uiStore.sidebarCollapsed">
             <div class="logo_box" @click="router.push('/platform/knowledge-bases')" style="cursor: pointer;">
-                <img class="logo" src="@/assets/img/weknora.png" alt="">
+                <img class="logo logo--light" src="@/assets/img/ai-platform.png" alt="">
+                <img class="logo logo--dark" src="@/assets/img/ai-platform-dark.png" alt="">
                 <sup v-if="isLiteEdition" class="lite-badge">Lite</sup>
             </div>
             <div class="logo_actions">
@@ -493,7 +494,10 @@ const getIconActiveState = (itemPath: string) => {
     };
 };
 
-// 分离上下两部分菜单（使用 visibleMenuArr 以便 lite 模式过滤 logout）
+// 分离上下两部分菜单（使用 visibleMenuArr 过滤）
+// 本地定制：Lite 下也显示 logout / organizations——上游默认对 Lite 隐藏
+// （stores/menu.ts liteHiddenPaths、config/deploymentCapabilities.ts、
+// 后端 deployment_capabilities.go 三处已同步放开）
 const TOP_MENU_PATHS = new Set(['creatChat', 'knowledge-bases', 'artifacts', 'agents', 'automations', 'toolbox', 'organizations']);
 
 const topMenuItems = computed<MenuItem[]>(() => {
@@ -1407,6 +1411,10 @@ const resizeSidebar = (delta: number, keyboard: boolean) => {
             height: auto;
         }
 
+        .logo--dark {
+            display: none;
+        }
+
         .lite-badge {
             margin-left: 2px;
             align-self: flex-start;
@@ -2019,9 +2027,12 @@ const resizeSidebar = (delta: number, keyboard: boolean) => {
 }
 </style>
 <style lang="less">
-// Dark mode: invert dark logo to light
-html[theme-mode="dark"] .aside_box .logo_box .logo {
-    filter: invert(1) hue-rotate(180deg);
+// Dark mode: swap to the dark-variant logo asset (color logo can't survive a hue invert)
+html[theme-mode="dark"] .aside_box .logo_box .logo--light {
+    display: none;
+}
+html[theme-mode="dark"] .aside_box .logo_box .logo--dark {
+    display: block;
 }
 
 // Dark mode: 滚动条在深色背景下需要更亮的颜色才看得见
