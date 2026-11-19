@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/Tencent/WeKnora/internal/sandbox"
 	"github.com/gin-gonic/gin"
@@ -71,11 +70,11 @@ func BuildDeploymentCapabilities(
 	edition string,
 	available DeploymentFeatureAvailability,
 ) DeploymentCapabilitiesData {
-	isLite := strings.EqualFold(strings.TrimSpace(edition), "lite")
-	organizations := supportedDeploymentCapability(available.Organizations && !isLite)
-	if isLite {
-		organizations.Reason = "not_supported_in_lite"
-	}
+	// 本地定制：上游在 Lite 下强制 organizations=unsupported
+	// (reason: not_supported_in_lite)，本部署放开共享空间，上报真实可用性。
+	// 上游的 isLite := strings.EqualFold(strings.TrimSpace(edition), "lite")
+	// 仅服务于该判断，已一并移除。
+	organizations := supportedDeploymentCapability(available.Organizations)
 
 	sandboxDocker := DeploymentCapability{
 		Supported: available.Sandbox && available.SandboxDocker,

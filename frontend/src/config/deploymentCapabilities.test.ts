@@ -19,13 +19,23 @@ test('capability filtering is fail-open unless backend explicitly disables a fea
   assert.equal(isDeploymentCapabilitySupported(capabilities, 'agents'), true)
 })
 
-test('organizations stay hidden in lite even when capabilities fail open', () => {
+// 本地定制：Lite 下放开 organizations——原断言"lite 中即使 fail-open 也隐藏"
+// 已改为"跟随后端上报"，与本部署的菜单改动保持一致。
+test('organizations follow backend capability in lite (local customization)', () => {
   assert.equal(
     isDeploymentCapabilitySupported({}, 'organizations', { liteMode: true }),
-    false,
+    true,
   )
   assert.equal(
     isDeploymentCapabilitySupported({}, 'organizations', { edition: 'lite' }),
+    true,
+  )
+  assert.equal(
+    isDeploymentCapabilitySupported(
+      { organizations: { supported: false } },
+      'organizations',
+      { liteMode: true },
+    ),
     false,
   )
   assert.equal(

@@ -71,7 +71,8 @@
           </div>
         </div>
 
-        <div v-if="userName && !authStore.isLiteMode" ref="tenantMenuItemRef" class="dropdown-tenant-panel" :class="{
+        <!-- 本地定制：上游 Lite 隐藏空间切换面板，本部署放开以支持多空间 -->
+        <div v-if="userName" ref="tenantMenuItemRef" class="dropdown-tenant-panel" :class="{
           'is-open': tenantSubmenuOpen,
           'is-clickable': showTenantSwitcher,
         }" @mouseenter="showTenantSwitcher && showTenantSubmenu()"
@@ -96,7 +97,8 @@
           <t-icon name="user" class="menu-icon" />
           <span>{{ $t('general.personalSettings') }}</span>
         </div>
-        <div v-if="!authStore.isLiteMode" class="menu-item" @click="handleQuickNav('tenant')">
+        <!-- 本地定制：上游 Lite 隐藏空间设置入口，本部署放开 -->
+        <div class="menu-item" @click="handleQuickNav('tenant')">
           <t-icon name="user-circle" class="menu-icon" />
           <span>{{ $t('settings.workspaceSettings') }}</span>
         </div>
@@ -147,13 +149,13 @@
             </svg>
           </span>
         </div>
-        <template v-if="!authStore.isLiteMode">
-          <div class="menu-divider"></div>
-          <div class="menu-item danger" @click="handleLogout">
-            <t-icon name="logout" class="menu-icon" />
-            <span>{{ $t('auth.logout') }}</span>
-          </div>
-        </template>
+        <!-- 本地定制：上游对 Lite 隐藏整个退出登录块，本部署放开。
+             handleLogout 已含后端 /auth/logout + 本地清理 + 跳登录页。 -->
+        <div class="menu-divider"></div>
+        <div class="menu-item danger" @click="handleLogout">
+          <t-icon name="logout" class="menu-icon" />
+          <span>{{ $t('auth.logout') }}</span>
+        </div>
       </div>
     </Transition>
 
@@ -259,8 +261,8 @@ const currentRoleIcon = computed(() => roleIcon(authStore.currentTenantRole))
 // 单空间用户（memberships <= 1 且非 superuser）= 永远 home + owner，第三
 // 行就是 user-email 信息的重复，没必要占视觉空间；只对多空间 / superuser
 // 渲染。Lite 模式下没有 RBAC 概念，统一隐藏。
+// 本地定制：本部署 Lite 也玩多空间，身份行同样放开（上游隐藏）。
 const showTenantIdentityLine = computed(() => {
-  if (authStore.isLiteMode) return false
   if (authStore.canAccessAllTenants) return true
   return (authStore.memberships ?? []).length > 1
 })

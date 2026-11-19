@@ -28,15 +28,14 @@ func allDeploymentFeaturesAvailable() handler.DeploymentFeatureAvailability {
 	}
 }
 
-func TestBuildDeploymentCapabilitiesHidesOrganizationsInLite(t *testing.T) {
+// 本地定制：Lite 下放开 organizations——原断言"lite 中强制 unsupported
+// (not_supported_in_lite)"已改为"上报真实可用性"。
+func TestBuildDeploymentCapabilitiesReportsOrganizationsInLite(t *testing.T) {
 	result := handler.BuildDeploymentCapabilities("lite", allDeploymentFeaturesAvailable())
 
 	organization := result.Capabilities["organizations"]
-	if organization.Supported {
-		t.Fatal("organizations should be unsupported in lite edition")
-	}
-	if organization.Reason != "not_supported_in_lite" {
-		t.Fatalf("organization reason = %q, want not_supported_in_lite", organization.Reason)
+	if !organization.Supported {
+		t.Fatal("organizations should be supported in lite edition (local customization)")
 	}
 	if !result.Capabilities["agents"].Supported {
 		t.Fatal("agents should remain supported in lite edition")

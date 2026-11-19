@@ -35,12 +35,9 @@ export function isDeploymentCapabilitySupported(
   options?: { liteMode?: boolean; edition?: string },
 ): boolean {
   if (!key) return true
-  if (key === 'organizations') {
-    const isLite =
-      options?.liteMode === true ||
-      options?.edition?.trim().toLowerCase() === 'lite'
-    if (isLite) return false
-  }
+  // 本地定制：上游在 Lite 下对 'organizations' 硬性 return false（liteMode
+  // 或 edition === 'lite' 都拦），本部署放开共享空间入口，该硬闸已移除。
+  // Lite 的可见性现在完全由后端 capability 上报决定（后端已同步放开）。
   // Docker talks to a local Engine API (often docker.sock = host root), so
   // missing or failed capability probes must not leave the picker visible.
   // Host sandbox is Lite-desktop-only; keep the same fail-closed gate so a
